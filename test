@@ -3,104 +3,320 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DBZ: Superkämpfer (Goku vs. Vegeta)</title>
+  <title>DBZ: Superkämpfer - Symmetrisches Kartenduell</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', monospace; }
-    body { background-color: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
-    #game-container { width: 100%; max-width: 420px; background: #222; border: 4px solid #ff9900; border-radius: 12px; padding: 12px; box-shadow: 0 0 20px rgba(255,153,0,0.3); }
-    .header { text-align: center; color: #ff9900; font-size: 16px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+    body { background-color: #0b0b0e; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
     
-    /* Arena & Distanzanzeige */
-    .arena { height: 180px; background: linear-gradient(to bottom, #2c3e50, #7f8c8d); border: 3px solid #000; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
-    .fighter { background: rgba(0,0,0,0.75); padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #444; }
-    .hp { color: #ff4d4d; font-weight: bold; }
-    .ki { color: #4da6ff; font-weight: bold; }
+    #game-container { 
+      width: 100%; max-width: 420px; 
+      background: #181922; 
+      border: 3px solid #ff9900; 
+      border-radius: 16px; 
+      padding: 14px; 
+      box-shadow: 0 0 25px rgba(255,153,0,0.25), inset 0 0 15px rgba(0,0,0,0.8); 
+    }
+
+    .header { 
+      text-align: center; 
+      color: #ff9900; 
+      font-size: 15px; 
+      font-weight: bold; 
+      margin-bottom: 10px; 
+      text-transform: uppercase; 
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
     
-    .distance-display { text-align: center; background: #ff9900; color: #000; font-weight: bold; padding: 3px; border-radius: 4px; font-size: 12px; }
+    .arena { 
+      height: 195px; 
+      background: linear-gradient(135deg, #1b2838 0%, #2c3e50 100%); 
+      border: 2px solid #000; 
+      border-radius: 10px; 
+      padding: 10px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+      position: relative;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .fighter { 
+      background: rgba(0, 0, 0, 0.65); 
+      padding: 8px 10px; 
+      border-radius: 8px; 
+      font-size: 12px; 
+      border: 1px solid rgba(255,255,255,0.1); 
+    }
+
+    .fighter-header {
+      display: flex; 
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .bar-container {
+      background: #333;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 4px;
+      border: 1px solid #111;
+    }
+
+    .hp-fill {
+      background: linear-gradient(90deg, #ff4d4d, #ff1a1a);
+      height: 100%;
+      width: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .ki-fill {
+      background: linear-gradient(90deg, #3399ff, #0055ff);
+      height: 100%;
+      width: 30%;
+      transition: width 0.3s ease;
+    }
+
+    .stats-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #ccc;
+    }
+    .hp-num { color: #ff6b6b; font-weight: bold; }
+    .ki-num { color: #4da6ff; font-weight: bold; }
+
+    .distance-display { 
+      text-align: center; 
+      background: #ff9900; 
+      color: #000; 
+      font-weight: bold; 
+      padding: 4px; 
+      border-radius: 6px; 
+      font-size: 10px;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
     
-    #log { height: 75px; background: #000; color: #00ff66; padding: 8px; font-size: 11px; overflow-y: auto; margin: 10px 0; border-radius: 4px; border: 1px solid #333; line-height: 1.4; }
+    .deck-info { 
+      display: flex; 
+      justify-content: space-between; 
+      font-size: 11px; 
+      color: #888; 
+      margin: 10px 2px 6px 2px; 
+    }
+
+    #log { 
+      height: 80px; 
+      background: #0a0a0e; 
+      color: #00ff66; 
+      padding: 8px; 
+      font-size: 11px; 
+      overflow-y: auto; 
+      margin-bottom: 12px; 
+      border-radius: 8px; 
+      border: 1px solid #222; 
+      line-height: 1.4;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    }
     
-    /* Handkarten Grid */
     .hand { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .card-btn { background: #333; color: #fff; border: 2px solid #ff9900; padding: 10px 5px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60px; font-size: 11px; font-weight: bold; text-align: center; }
-    .card-btn:active { transform: scale(0.96); }
-    .card-btn .cost { font-size: 9px; color: #4da6ff; margin-top: 4px; font-weight: normal; }
-    .card-btn .type { font-size: 9px; color: #aaa; margin-top: 2px; }
-    .card-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #555; }
     
-    .phase-btn { grid-column: span 2; background: #ff9900; color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+    .melee-btn { 
+      grid-column: span 2; 
+      background: linear-gradient(135deg, #8b0000, #cc0000); 
+      color: #fff; 
+      border: 2px solid #ff4d4d; 
+      padding: 10px; 
+      font-weight: bold; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      text-align: center; 
+      font-size: 11px; 
+      text-transform: uppercase;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .melee-btn:active { transform: scale(0.98); }
+    .melee-btn:disabled { background: #222; border-color: #444; color: #666; cursor: not-allowed; box-shadow: none; }
+
+    .card-btn { 
+      background: linear-gradient(135deg, #252631, #1e1f29); 
+      color: #fff; 
+      border: 2px solid #ff9900; 
+      padding: 8px 6px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      min-height: 62px; 
+      font-size: 11px; 
+      font-weight: bold; 
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: transform 0.1s, border-color 0.2s;
+    }
+    .card-btn:active { transform: scale(0.95); }
+    .card-btn .cost { font-size: 9px; color: #4da6ff; margin-top: 3px; font-weight: normal; }
+    .card-btn .type { font-size: 8px; color: #888; margin-top: 2px; text-transform: uppercase; }
+    .card-btn:disabled { opacity: 0.35; cursor: not-allowed; border-color: #444; background: #15151a; box-shadow: none; }
+    
+    .phase-btn { 
+      grid-column: span 2; 
+      background: #ff9900; 
+      color: #000; 
+      border: none; 
+      padding: 12px; 
+      font-weight: bold; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      text-transform: uppercase;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
 
 <div id="game-container">
-  <div class="header">Goku vs. Vegeta</div>
+  <div class="header">Goku vs. Vegeta (Symmetrisch)</div>
   
   <div class="arena">
     <!-- Gegner: Vegeta -->
     <div class="fighter">
-      <div style="display:flex; justify-content:space-between;">
-        <span><strong>Vegeta</strong></span>
-        <span class="hp">KP: <span id="e-hp">150</span></span>
+      <div class="fighter-header">
+        <span><strong>Vegeta</strong> <span id="e-shield-tag" style="color:#00ffff; font-size:9px; display:none; background:rgba(0,255,255,0.1); padding:1px 4px; border-radius:3px; border:1px solid #00ffff;">AUSWEICHEN</span></span>
+        <span style="font-size:10px; color:#aaa;">Deck: <strong id="e-deck-count" style="color:#fff;">0</strong></span>
       </div>
-      <div><span class="ki">KI: <span id="e-ki">40</span></span></div>
+      <div class="bar-container"><div class="hp-fill" id="e-hp-bar" style="width: 100%;"></div></div>
+      <div class="bar-container"><div class="ki-fill" id="e-ki-bar" style="width: 30%;"></div></div>
+      <div class="stats-text">
+        <span>KP: <span id="e-hp" class="hp-num">120</span>/120</span>
+        <span>KI: <span id="e-ki" class="ki-num">30</span></span>
+      </div>
     </div>
 
-    <!-- Distanz-Anzeige -->
+    <!-- Distanz -->
     <div class="distance-display" id="dist-text">DISTANZ: FERNKAMPF</div>
 
     <!-- Spieler: Goku -->
     <div class="fighter">
-      <div style="display:flex; justify-content:space-between;">
-        <span><strong>Goku</strong></span>
-        <span class="hp">KP: <span id="p-hp">120</span></span>
+      <div class="fighter-header">
+        <span><strong>Goku (Du)</strong> <span id="p-shield-tag" style="color:#00ffff; font-size:9px; display:none; background:rgba(0,255,255,0.1); padding:1px 4px; border-radius:3px; border:1px solid #00ffff;">AUSWEICHEN</span></span>
       </div>
-      <div><span class="ki">KI: <span id="p-ki">30</span></span></div>
+      <div class="bar-container"><div class="hp-fill" id="p-hp-bar" style="width: 100%;"></div></div>
+      <div class="bar-container"><div class="ki-fill" id="p-ki-bar" style="width: 30%;"></div></div>
+      <div class="stats-text">
+        <span>KP: <span id="p-hp" class="hp-num">120</span>/120</span>
+        <span>KI: <span id="p-ki" class="ki-num">30</span></span>
+      </div>
     </div>
   </div>
 
-  <div id="log">> Kampffeld bereit! Ziehe deine Handkarten...</div>
-
-  <div class="hand" id="hand-container">
-    <!-- Dynamische Karten -->
+  <div class="deck-info">
+    <span>🎴 Dein Deck: <strong id="draw-count" style="color:#fff;">0</strong></span>
+    <span>🗑️ Ablage: <strong id="discard-count" style="color:#fff;">0</strong></span>
   </div>
+
+  <div id="log">> Symmetrisches Duell gestartet! Beide kämpfen mit exakt gleichen Kartensets.</div>
+
+  <div class="hand" id="hand-container"></div>
 </div>
 
 <script>
-  // Zustand
   let pHp = 120, pKi = 30;
-  let eHp = 150, eKi = 40;
-  let isCloseRange = false; // false = Fernkampf, true = Nahkampf
+  let eHp = 120, eKi = 30;
+  let maxHp = 120, maxKi = 100;
+  let isCloseRange = false;
   let playerTurn = true;
+  
+  let playerEvading = false;
+  let enemyEvading = false;
 
-  // Deck-Pool
-  const masterDeck = [
-    { name: "Schlag-Combo", dmg: 22, ki: 0, range: "close", type: "Nahkampf" },
-    { name: "Knie-Rammstoß", dmg: 30, ki: 10, range: "close", type: "Nahkampf" },
-    { name: "Kamehameha", dmg: 45, ki: 35, range: "far", type: "Fernkampf" },
-    { name: "Ki-Salbe", dmg: 20, ki: 15, range: "far", type: "Fernkampf" },
+  const createMasterDeck = () => [
+    { name: "Tritt-Angriff", dmg: 28, ki: 10, range: "close", type: "Nahkampf" },
+    { name: "Energiewelle", dmg: 35, ki: 25, range: "far", type: "Fernkampf" },
+    { name: "Energiewelle", dmg: 35, ki: 25, range: "far", type: "Fernkampf" },
+    { name: "Ki-Salbe", dmg: 18, ki: 10, range: "far", type: "Fernkampf" },
+    { name: "Vorrücken", move: "approach", ki: -5, range: "any", type: "Bewegung" },
     { name: "Vorrücken", move: "approach", ki: -5, range: "any", type: "Bewegung" },
     { name: "Rückzug", move: "retreat", ki: -5, range: "any", type: "Bewegung" },
-    { name: "Ki aufladen", dmg: 0, ki: -30, range: "any", type: "Ressource" },
+    { name: "Ki aufladen", dmg: 0, ki: -25, range: "any", type: "Ressource" },
+    { name: "Ki aufladen", dmg: 0, ki: -25, range: "any", type: "Ressource" },
     { name: "Ausweichen", buff: "evade", ki: 10, range: "any", type: "Abwehr" }
   ];
 
+  let playerDrawPile = [];
+  let playerDiscardPile = [];
+  let currentHand = [];
+
+  let enemyDrawPile = [];
+  let enemyDiscardPile = [];
+  let enemyHand = [];
+
   function writeLog(msg) {
     const log = document.getElementById('log');
-    log.innerHTML += "<br>> " + msg;
-    log.scrollTop = log.scrollHeight;
+    if (log) {
+      log.innerHTML += "<br>> " + msg;
+      log.scrollTop = log.scrollHeight;
+    }
   }
 
-  function drawHand() {
+  function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function drawPlayerCards(targetCount = 3) {
+    while (currentHand.length < targetCount) {
+      if (playerDrawPile.length === 0) {
+        if (playerDiscardPile.length === 0) break;
+        writeLog("Dein Ablagestapel wurde neu gemischt!");
+        playerDrawPile = shuffle(playerDiscardPile);
+        playerDiscardPile = [];
+      }
+      currentHand.push(playerDrawPile.pop());
+    }
+    updateDeckUI();
+    renderHand();
+  }
+
+  function drawEnemyCards(targetCount = 3) {
+    while (enemyHand.length < targetCount) {
+      if (enemyDrawPile.length === 0) {
+        if (enemyDiscardPile.length === 0) break;
+        enemyDrawPile = shuffle(enemyDiscardPile);
+        enemyDiscardPile = [];
+      }
+      enemyHand.push(enemyDrawPile.pop());
+    }
+    updateDeckUI();
+  }
+
+  function renderHand() {
     const container = document.getElementById('hand-container');
+    if (!container) return;
     container.innerHTML = "";
 
     if (!playerTurn) return;
 
-    // Ziehe 4 zufällige Karten
-    let shuffled = [...masterDeck].sort(() => 0.5 - Math.random()).slice(0, 4);
+    let meleeBtn = document.createElement('button');
+    meleeBtn.className = 'melee-btn';
+    meleeBtn.innerHTML = `⚔️ Standard-Schlag (18 Dmg / 0 Ki)`;
+    if (!isCloseRange) {
+      meleeBtn.disabled = true;
+      meleeBtn.title = "Nur im Nahkampf verfügbar!";
+    }
+    meleeBtn.onclick = () => playBasicMelee();
+    container.appendChild(meleeBtn);
 
-    shuffled.forEach(card => {
+    currentHand.forEach((card, index) => {
       let btn = document.createElement('button');
       btn.className = 'card-btn';
 
@@ -113,38 +329,71 @@
         <span class="type">${card.type}</span>
       `;
 
-      // Bedingungsprüfung (KI & Distanz)
       let canPlay = true;
       if (card.ki > 0 && pKi < card.ki) canPlay = false;
       if (card.range === "close" && !isCloseRange) canPlay = false;
       if (card.range === "far" && isCloseRange) canPlay = false;
 
       btn.disabled = !canPlay;
-      btn.onclick = () => playTurn(card);
+      btn.onclick = () => playCard(index);
       container.appendChild(btn);
     });
   }
 
-  function playTurn(card) {
+  function playBasicMelee() {
+    if (!playerTurn || !isCloseRange || pHp <= 0 || eHp <= 0) return;
+
+    let dmg = 18;
+    
+    if (enemyEvading) {
+      writeLog(`Goku schlägt zu, aber <strong>Vegeta weicht geschickt aus (0 Schaden)!</strong>`);
+      enemyEvading = false;
+    } else {
+      eHp = Math.max(0, eHp - dmg);
+      writeLog(`Goku landet eine schnelle <strong>Schlag-Kombo</strong>! (-${dmg} KP)`);
+    }
+
+    updateUI();
+
+    if (eHp <= 0) {
+      writeLog("<strong>SIEG! Du hast Vegeta besiegt!</strong>");
+      document.getElementById('hand-container').innerHTML = "<button class='phase-btn' onclick='location.reload()'>Nochmal kämpfen</button>";
+      return;
+    }
+
+    playerTurn = false;
+    document.getElementById('hand-container').innerHTML = "<div style='grid-column:span 2; text-align:center; padding:10px; color:#ff9900;'>Vegeta ist am Zug...</div>";
+    setTimeout(enemyTurn, 900);
+  }
+
+  function playCard(handIndex) {
     if (!playerTurn || pHp <= 0 || eHp <= 0) return;
 
-    // Ki verrechnen
+    let card = currentHand.splice(handIndex, 1)[0];
+    playerDiscardPile.push(card);
+    updateDeckUI();
+
     pKi = Math.max(0, Math.min(100, pKi - card.ki));
 
-    // Bewegung ausführen
     if (card.move === "approach") {
       isCloseRange = true;
       writeLog("Goku stürmt auf Vegeta zu! (Nahkampf)");
     } else if (card.move === "retreat") {
       isCloseRange = false;
       writeLog("Goku springt auf Distanz! (Fernkampf)");
-    } 
-    // Angriff ausführen
-    else if (card.dmg > 0) {
-      eHp = Math.max(0, eHp - card.dmg);
-      writeLog(`Goku nutzt ${card.name}! (-${card.dmg} KP für Vegeta)`);
+    } else if (card.dmg > 0) {
+      if (enemyEvading) {
+        writeLog(`Goku nutzt ${card.name}, aber <strong>Vegeta weicht geschickt aus (0 Schaden)!</strong>`);
+        enemyEvading = false;
+      } else {
+        eHp = Math.max(0, eHp - card.dmg);
+        writeLog(`Goku nutzt ${card.name}! (-${card.dmg} KP)`);
+      }
     } else if (card.name === "Ki aufladen") {
-      writeLog("Goku bündelt seine Energie!");
+      writeLog("Goku lädt seine KI auf!");
+    } else if (card.buff === "evade") {
+      playerEvading = true;
+      writeLog("Goku geht in eine <strong>Ausweich-Haltung</strong>!");
     } else {
       writeLog(`Goku nutzt ${card.name}!`);
     }
@@ -152,58 +401,101 @@
     updateUI();
 
     if (eHp <= 0) {
-      writeLog("<strong>SIEG! Vegeta wurde besiegt!</strong>");
+      writeLog("<strong>SIEG! Du hast Vegeta besiegt!</strong>");
       document.getElementById('hand-container').innerHTML = "<button class='phase-btn' onclick='location.reload()'>Nochmal kämpfen</button>";
       return;
     }
 
-    // Zug beenden & Gegner-KI ausführen
     playerTurn = false;
-    document.getElementById('hand-container').innerHTML = "<div style='grid-column:span 2; text-align:center; padding:10px;'>Vegeta ist am Zug...</div>";
-    setTimeout(enemyTurn, 1000);
+    document.getElementById('hand-container').innerHTML = "<div style='grid-column:span 2; text-align:center; padding:10px; color:#ff9900;'>Vegeta ist am Zug...</div>";
+    setTimeout(enemyTurn, 900);
   }
 
   function enemyTurn() {
-    // Einfache KI für Vegeta
-    eKi = Math.min(100, eKi + 10); // Generiert etwas Ki pro Runde
+    eKi = Math.min(100, eKi + 10);
+    drawEnemyCards(3);
+
+    let playedCardIndex = -1;
+    
+    // Suche nach passender Karte
+    for (let i = 0; i < enemyHand.length; i++) {
+      let card = enemyHand[i];
+      let canAfford = (card.ki <= 0) || (eKi >= card.ki);
+      let matchesRange = (card.range === "any") || 
+                         (card.range === "close" && isCloseRange) || 
+                         (card.range === "far" && !isCloseRange);
+
+      if (canAfford && matchesRange) {
+        playedCardIndex = i;
+        break;
+      }
+    }
+
+    // Wenn keine Distanz-Karte passt, nimm Ki aufladen oder Bewegung
+    if (playedCardIndex === -1) {
+      for (let i = 0; i < enemyHand.length; i++) {
+        let card = enemyHand[i];
+        if (card.name === "Ki aufladen" || card.move) {
+          playedCardIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (playedCardIndex === -1 && enemyHand.length > 0) {
+      playedCardIndex = 0;
+    }
 
     let actionText = "";
-    
-    // Entscheidungslogik für Distanz & KI
-    if (isCloseRange) {
-      if (eKi >= 15) {
-        eKi -= 15;
-        let dmg = 28;
-        pHp = Math.max(0, pHp - dmg);
-        actionText = `Vegeta trifft Goku mit einem Meteor-Kick! (-${dmg} KP)`;
+
+    if (playedCardIndex !== -1) {
+      let card = enemyHand.splice(playedCardIndex, 1)[0];
+      enemyDiscardPile.push(card);
+      eKi = Math.max(0, Math.min(100, eKi - card.ki));
+
+      if (card.move === "approach") {
+        isCloseRange = true;
+        actionText = `Vegeta spielt <strong>Vorrücken</strong> und stürmt in den Nahkampf!`;
+      } else if (card.move === "retreat") {
+        isCloseRange = false;
+        actionText = `Vegeta spielt <strong>Rückzug</strong> auf Distanz!`;
+      } else if (card.name === "Ki aufladen") {
+        actionText = `Vegeta spielt <strong>Ki aufladen</strong> und sammelt Energie!`;
+      } else if (card.buff === "evade") {
+        enemyEvading = true;
+        actionText = `Vegeta geht in eine <strong>Ausweich-Haltung</strong>!`;
+      } else if (card.dmg > 0) {
+        if (playerEvading) {
+          actionText = `Vegeta nutzt ${card.name}, aber <strong>du weichst geschickt aus (0 Schaden)!</strong>`;
+          playerEvading = false;
+        } else {
+          pHp = Math.max(0, pHp - card.dmg);
+          actionText = `Vegeta trifft mit ${card.name}! (-${card.dmg} KP)`;
+        }
       } else {
-        let dmg = 15;
-        pHp = Math.max(0, pHp - dmg);
-        actionText = `Vegeta schlägt zu! (-${dmg} KP)`;
+        actionText = `Vegeta spielt ${card.name}.`;
       }
     } else {
-      if (eKi >= 30) {
-        eKi -= 30;
-        let dmg = 40;
-        pHp = Math.max(0, pHp - dmg);
-        actionText = `Vegeta feuert den <strong>GALICK-HO</strong> ab! (-${dmg} KP)`;
-      } else {
-        isCloseRange = true;
-        actionText = "Vegeta schließt blitzschnell die Distanz zum Nahkampf!";
-      }
+      actionText = `Vegeta zögert (keine passende Karte spielbar).`;
     }
 
     writeLog(actionText);
     updateUI();
 
     if (pHp <= 0) {
-      writeLog("<strong>NIEDERLAGE! Goku wurde überwältigt.</strong>");
+      writeLog("<strong>NIEDERLAGE! Vegeta hat dich besiegt.</strong>");
       document.getElementById('hand-container').innerHTML = "<button class='phase-btn' onclick='location.reload()'>Neustart</button>";
       return;
     }
 
     playerTurn = true;
-    drawHand();
+    drawPlayerCards(3);
+  }
+
+  function updateDeckUI() {
+    document.getElementById('draw-count').innerText = playerDrawPile.length;
+    document.getElementById('discard-count').innerText = playerDiscardPile.length;
+    document.getElementById('e-deck-count').innerText = enemyDrawPile.length;
   }
 
   function updateUI() {
@@ -211,7 +503,18 @@
     document.getElementById('p-ki').innerText = pKi;
     document.getElementById('e-hp').innerText = eHp;
     document.getElementById('e-ki').innerText = eKi;
+
+    document.getElementById('p-hp-bar').style.width = Math.max(0, (pHp / maxHp) * 100) + '%';
+    document.getElementById('p-ki-bar').style.width = Math.max(0, (pKi / maxKi) * 100) + '%';
+    document.getElementById('e-hp-bar').style.width = Math.max(0, (eHp / maxHp) * 100) + '%';
+    document.getElementById('e-ki-bar').style.width = Math.max(0, (eKi / maxKi) * 100) + '%';
     
+    const pShield = document.getElementById('p-shield-tag');
+    if (pShield) pShield.style.display = playerEvading ? "inline-block" : "none";
+
+    const eShield = document.getElementById('e-shield-tag');
+    if (eShield) eShield.style.display = enemyEvading ? "inline-block" : "none";
+
     const distElement = document.getElementById('dist-text');
     if (isCloseRange) {
       distElement.innerText = "DISTANZ: NAHKAMPF";
@@ -224,9 +527,15 @@
     }
   }
 
-  // Initialer Start
+  // Spielinitialisierung
+  playerDrawPile = shuffle(createMasterDeck());
+  enemyDrawPile = shuffle(createMasterDeck());
+  
+  // Vegetas Starthand direkt befüllen, damit er von Runde 1 an Karten hat
+  drawEnemyCards(3);
+
   updateUI();
-  drawHand();
+  drawPlayerCards(3);
 </script>
 
 </body>
